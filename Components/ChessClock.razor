@@ -72,14 +72,14 @@
 <div class="gameHolder" style="width:100%; height:80vh; margin:0; padding:0;" tabindex="0" @onkeydown="HandleKeyDown" @ref="GameHolderRef">
     <div class="playerTimerDiv player1Div @(ChessGame.IsPlayer1Turn ? "active" : string.Empty)" @onclick="(() => PlayerClick(1))">
         <h2>@Player1TimeDisplay</h2>
-        @if (ChessGame.Player1Clock._increment is DelayIncrement delayIncrement1 && delayIncrement1._activeState)
+        @if (ChessGame.Player1Clock.Increment is DelayIncrement delayIncrement1 && delayIncrement1.ActiveState)
         {
             <p class="extraTimer">@delayIncrement1.DelayLeft</p>
         }
     </div>
     <div class="playerTimerDiv player2Div @(ChessGame.IsPlayer1Turn ? string.Empty : "active")" @onclick="(() => PlayerClick(2))">
         <h2>@Player2TimeDisplay</h2>
-        @if (ChessGame.Player2Clock._increment is DelayIncrement delayIncrement2 && delayIncrement2._activeState)
+        @if (ChessGame.Player2Clock.Increment is DelayIncrement delayIncrement2 && delayIncrement2.ActiveState)
         {
             <p class="extraTimer">@delayIncrement2.DelayLeft</p>
         }
@@ -127,8 +127,8 @@
     {
         if (ChessGame != null)
         {
-            Player1TimeLeft = ChessGame.Player1Clock._timeLeft;
-            Player2TimeLeft = ChessGame.Player2Clock._timeLeft;
+            Player1TimeLeft = ChessGame.Player1Clock.TimeLeft;
+            Player2TimeLeft = ChessGame.Player2Clock.TimeLeft;
 
             SetTimerDisplay();
 
@@ -164,7 +164,7 @@
             Player1TimeDisplay = Math.Round(Player1TimeLeft % 60, 1).ToString() + "s";
         }
 
-        if (ChessGame.Player1Clock._increment is DelayIncrement delayIncrement1)
+        if (ChessGame.Player1Clock.Increment is DelayIncrement delayIncrement1)
         {
             Player1DelayDisplay = Math.Round(delayIncrement1.DelayLeft, 1).ToString();
         }
@@ -181,7 +181,7 @@
             Player2TimeDisplay = Math.Round(Player2TimeLeft % 60, 1).ToString() + "s";
         }
 
-        if (ChessGame.Player2Clock._increment is DelayIncrement delayIncrement2)
+        if (ChessGame.Player2Clock.Increment is DelayIncrement delayIncrement2)
         {
             Player2DelayDisplay = Math.Round(delayIncrement2.DelayLeft, 1).ToString();
         }

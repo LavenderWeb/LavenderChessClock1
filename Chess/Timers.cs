@@ -5,46 +5,46 @@ namespace LavenderChessClock1.Chess
 {
     public class PlayerClock
     {
-        private bool firstRun = true;
-        public decimal _initialTime { get; private set; }
-        public decimal _fullTime { get; private set; }
-        public IIncrement _increment { get; private set; }
-        public decimal _timeLeft { get; private set; }
-        public bool _paused { get; private set; }
+        private bool _firstRun = true;
+        public decimal InitialTime { get; private set; }
+        public decimal FullTime { get; private set; }
+        public IIncrement Increment { get; private set; }
+        public decimal TimeLeft { get; private set; }
+        public bool Paused { get; private set; }
 
         public delegate void TimeLeftUpdated(decimal timeLeft);
         public event TimeLeftUpdated? OnTimeLeftUpdated;
 
-        public Stopwatch _stopwatch { get; set; }
+        public Stopwatch Stopwatch { get; set; }
         public PlayerClock(decimal initialTime, IIncrement? increment = null)
         {
-            _initialTime = initialTime;
-            _increment = increment ?? new NoIncrement();
-            _timeLeft = _fullTime = initialTime;
+            InitialTime = initialTime;
+            Increment = increment ?? new NoIncrement();
+            TimeLeft = FullTime = initialTime;
 
-            _stopwatch = new Stopwatch();
+            Stopwatch = new Stopwatch();
         }
 
         public async Task Start()
         {
-            if (!firstRun)
+            if (!_firstRun)
             {
-                _increment.ApplyIncrement(this);
+                Increment.ApplyIncrement(this);
 
-                while (_increment._activeState)
+                while (Increment.ActiveState)
                 {
                 }
             }
 
-            _paused = false;
-            _stopwatch.Start();
+            Paused = false;
+            Stopwatch.Start();
             await TimeLeftLoop();
-            firstRun = false;
+            _firstRun = false;
         }
 
         public async Task TimeLeftLoop()
         {
-            while (!_paused)
+            while (!Paused)
             {
                 await Task.Delay(10);
                 UpdateTimeLeft();
@@ -53,9 +53,9 @@ namespace LavenderChessClock1.Chess
 
         public void Stop()
         {
-            _stopwatch.Stop();
-            _paused = true;
-            if (_increment is DelayIncrement delayIncrement)
+            Stopwatch.Stop();
+            Paused = true;
+            if (Increment is DelayIncrement delayIncrement)
             {
                 delayIncrement.Reset();
             }
@@ -63,40 +63,40 @@ namespace LavenderChessClock1.Chess
 
         public void Reset()
         {
-            _stopwatch?.Reset();
-            _timeLeft = _fullTime = _initialTime;
-            firstRun = true;
-            InvokeTimeLeftUpdated(_timeLeft);
+            Stopwatch?.Reset();
+            TimeLeft = FullTime = InitialTime;
+            _firstRun = true;
+            InvokeTimeLeftUpdated(TimeLeft);
         }
 
         public async void Resume()
         {
-            if (_increment._activeState)
+            if (Increment.ActiveState)
             {
-                _increment.ApplyIncrement(this);
+                Increment.ApplyIncrement(this);
             }
 
-            _paused = false;
-            _stopwatch.Start();
+            Paused = false;
+            Stopwatch.Start();
             await TimeLeftLoop();
-            firstRun = false;
+            _firstRun = false;
         }
 
         public void AddSeconds(decimal seconds)
         {
-            _fullTime += seconds;
+            FullTime += seconds;
         }
 
         public void UpdateTimeLeft()
         {
-            _timeLeft = _fullTime - (decimal)_stopwatch.Elapsed.TotalSeconds;
+            TimeLeft = FullTime - (decimal)Stopwatch.Elapsed.TotalSeconds;
 
-            if (_timeLeft <= 0)
+            if (TimeLeft <= 0)
             {
                 Stop();
             }
 
-            InvokeTimeLeftUpdated(_timeLeft);
+            InvokeTimeLeftUpdated(TimeLeft);
         }
 
         private void InvokeTimeLeftUpdated(decimal timeLeft)

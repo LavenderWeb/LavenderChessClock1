@@ -4,8 +4,8 @@ namespace LavenderChessClock1.Chess
 {
     public interface IIncrement
     {
-        public bool _activeState { get; set; }
-        public int _incrementSeconds { get; set; }
+        public bool ActiveState { get; set; }
+        public int IncrementSeconds { get; set; }
         void ApplyIncrement(PlayerClock clock);
     }
 
@@ -17,35 +17,35 @@ namespace LavenderChessClock1.Chess
 
     public class NoIncrement : IIncrement
     {
-        public bool _activeState { get; set; } = false;
-        public int _incrementSeconds { get; set; } = 0;
+        public bool ActiveState { get; set; } = false;
+        public int IncrementSeconds { get; set; } = 0;
         public void ApplyIncrement(PlayerClock clock) { return; }
     }
 
     public class AdditionIncrement : IIncrement
     {
-        public bool _activeState { get; set; } = false;
-        public int _incrementSeconds { get; set; }
+        public bool ActiveState { get; set; } = false;
+        public int IncrementSeconds { get; set; }
         public AdditionIncrement(int incrementTime)
         {
-            _incrementSeconds = incrementTime;
+            IncrementSeconds = incrementTime;
         }
 
         public void ApplyIncrement(PlayerClock clock)
         {
-            _activeState = true;
-            clock.AddSeconds((decimal)_incrementSeconds);
-            _activeState = false;
+            ActiveState = true;
+            clock.AddSeconds((decimal)IncrementSeconds);
+            ActiveState = false;
         }
         
     }
 
     public class DelayIncrement : IIncrement, IDelayed
     {
-        public bool _activeState { get; set; } = false;
-        public int _incrementSeconds { get; set; }
+        public bool ActiveState { get; set; } = false;
+        public int IncrementSeconds { get; set; }
 
-        public Stopwatch _delayStopwatch { get; set; }
+        public System.Timers.Timer DelayTimer { get; set; }
         public decimal DelayLeft { get; set; }
 
         public delegate void CountdownTick();
@@ -53,53 +53,24 @@ namespace LavenderChessClock1.Chess
 
         public DelayIncrement(int incrementTime)
         {
-            _incrementSeconds = incrementTime;
-            DelayLeft = _incrementSeconds;
+            IncrementSeconds = incrementTime;
+            DelayLeft = IncrementSeconds;
 
-            _delayStopwatch = new Stopwatch();
+            DelayTimer = new System.Timers.Timer();
         }
 
         public async void ApplyIncrement(PlayerClock clock)
         {
-            _activeState = true;
-            _delayStopwatch.Start();
-            await TimeLeftLoop();
-        }
-
-        public async Task TimeLeftLoop()
-        {
-            while (_activeState && _delayStopwatch.IsRunning)
-            {
-                _delayStopwatch.Start();
-                DelayLeft = _incrementSeconds - (decimal)_delayStopwatch.Elapsed.TotalSeconds; ;
-                await SetDelayLeft();
-            }
-        }
-
-        public async Task SetDelayLeft()
-        {   
-            if (DelayLeft <= 0)
-            {
-                _delayStopwatch.Reset();
-                DelayLeft = _incrementSeconds;
-                _activeState = false;
-            }
-            else
-            {
-                DelayLeft = _incrementSeconds - (decimal)_delayStopwatch.Elapsed.TotalSeconds; ;
-            }
-        }
-
-        public void Reset()
-        {
-            _delayStopwatch.Reset();
-            DelayLeft = _incrementSeconds;
-            _activeState = false;
         }
 
         public void PauseDelay()
         {
-            _delayStopwatch.Stop();
+            //throw new NotImplementedException();
+        }
+
+        public void Reset()
+        {
+
         }
     }
 
