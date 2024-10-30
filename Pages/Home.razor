@@ -1,0 +1,195 @@
+﻿@page "/"
+@using LavenderChessClock1.Chess
+@using LavenderChessClock1.Components
+
+<PageTitle>Chess Clock - Start Game</PageTitle>
+
+<style>
+    body, html{
+        background-color: grey;
+    }
+
+    .gameInput{
+        font-size: 20px;
+        height: 30px;
+        width: 400px;
+        margin:0;
+        padding:0;
+    }
+
+        .gameInput[disabled]{
+            opacity: 0.5;
+        }
+
+        .tfInput{
+            width: 30px;
+            height: 30px;
+        }
+
+    .formLabel{
+        display: block;
+        width: 400px;
+        text-align: left;
+        font-size: 20px;
+        word-wrap:normal;
+    }
+
+    #CreateGameForm{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .submitFormDiv{
+        margin-top: 20px;
+    }
+
+    #BtnSubmit{
+        width: 200px;
+        height: 50px;
+        background-color: black;
+        border:none;
+        outline:none;
+        color: white;
+        border-radius: 5px;
+        font-size: 20px;
+    }
+</style>
+
+@if (NewGame != null)
+{
+    <ChessClock ChessGame="NewGame" OnDiscardGame="CreateNewGameAsync" />
+}
+else
+{
+    <EditForm id="CreateGameForm" EditContext="GameContext" OnValidSubmit="CreateGame" FormName="@("GameForm")">
+        <h1 style="font-size: 40px; font-weight: 600; border:none; outline:none;">New Game</h1>
+
+        <DataAnnotationsValidator />
+
+        <p class="formLabel">Player 1 Starting Time (in seconds)</p>
+        <InputNumber @bind-Value="GameModel.Player1Seconds" class="gameInput" placeholder="Player 1 Timer"></InputNumber>
+        <ValidationMessage For="@(() => GameModel.Player1Seconds)" class="gameValidationMessage" />
+
+        <p class="formLabel">Player 1 Increment Type</p>
+        <InputSelect @bind-Value="GameModel.Player1Increment" class="gameInput">
+            <option value="@IncrementType.NoIncrement">No Increment</option>
+            <option value="@IncrementType.AdditionIncrement">Addition</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => GameModel.Player1Increment)" class="gameValidationMessage" />
+
+        <p class="formLabel">Player 1 Increment Length (in seconds)</p>
+        @if (GameModel.Player1Increment == IncrementType.NoIncrement)
+        {
+            <InputNumber @bind-Value="GameModel.Player1IncrementLength" class="gameInput" disabled></InputNumber>
+        }
+        else
+        {
+            <InputNumber @bind-Value="GameModel.Player1IncrementLength" class="gameInput"></InputNumber>
+        }
+        <ValidationMessage For="@(() => GameModel.Player1IncrementLength)" class="gameValidationMessage" />
+
+        <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin: 20px 0; padding: 0;">
+            <p class="formLabel" style="margin-right: 20px;">Same for both?</p>
+            <InputCheckbox @bind-Value="GameModel.SameForBoth" class="tfInput"></InputCheckbox>
+        </div>
+
+        @if (!GameModel.SameForBoth)
+        {
+            <p class="formLabel">Player 2 Starting Time (in seconds)</p>
+            <InputNumber @bind-Value="GameModel.Player2Seconds" class="gameInput" placeholder=""></InputNumber>
+            <ValidationMessage For="@(() => GameModel.Player2Seconds)" class="gameValidationMessage" />
+
+            <p class="formLabel">Player 2 Increment Type</p>
+            <InputSelect @bind-Value="GameModel.Player2Increment" class="gameInput">
+                <option value="@IncrementType.NoIncrement">No Increment</option>
+                <option value="@IncrementType.AdditionIncrement">Addition</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => GameModel.Player2Increment)" class="gameValidationMessage" />
+
+            <p class="formLabel">Player 2 Increment Length (in seconds)</p>
+            @if (GameModel.Player2Increment == IncrementType.NoIncrement)
+            {
+                <InputNumber @bind-Value="GameModel.Player2IncrementLength" class="gameInput" disabled></InputNumber>
+            }
+            else
+            {
+                <InputNumber @bind-Value="GameModel.Player2IncrementLength" class="gameInput"></InputNumber>
+            }
+            <ValidationMessage For="@(() => GameModel.Player2IncrementLength)" class="gameValidationMessage" />
+        }
+
+        <div class="submitFormDiv">
+            <button id="BtnSubmit" type="submit">Create Game</button>
+        </div>
+
+    </EditForm>
+}
+
+@code {
+    public Game? NewGame { get; set; } = null;
+
+    public GameModel GameModel { get; set; } = default!;
+
+    public EditContext GameContext { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        ResetModelAndContext();
+
+        base.OnInitialized();
+    }
+
+    protected void ResetModelAndContext()
+    {
+        GameModel = new GameModel();
+        GameContext = new EditContext(GameModel);
+    }
+
+    public async Task CreateNewGameAsync()
+    {
+        ResetModelAndContext();
+        NewGame = null;
+        StateHasChanged();
+    }
+
+    protected void InvokeStateChanged()
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    public void CreateGame()
+    {
+        if (GameModel.Player1IncrementLength == 0)
+            GameModel.Player1Increment = IncrementType.NoIncrement;
+
+        if (GameModel.Player2IncrementLength == 0)
+            GameModel.Player2Increment = IncrementType.NoIncrement;
+
+        if (GameModel.SameForBoth)
+        {
+            GameModel.Player2Seconds = GameModel.Player1Seconds;
+            GameModel.Player2Increment = GameModel.Player1Increment;
+            GameModel.Player2IncrementLength = GameModel.Player1IncrementLength;
+        }
+
+        if (GameContext.Validate())
+        {
+            decimal player1Seconds = GameModel.Player1Seconds;
+            decimal player2Seconds = GameModel.SameForBoth
+                ? GameModel.Player1Seconds
+                : GameModel.Player2Seconds;
+
+            IIncrement increment1 = IncrementFactory.CreateIncrement(GameModel.Player1Increment, GameModel.Player1IncrementLength);
+            IIncrement increment2 = GameModel.SameForBoth
+                ? IncrementFactory.CreateIncrement(GameModel.Player1Increment, GameModel.Player1IncrementLength)
+                : IncrementFactory.CreateIncrement(GameModel.Player2Increment, GameModel.Player2IncrementLength);
+
+            NewGame = new Game(player1Seconds, player2Seconds, increment1, increment2);
+
+            InvokeStateChanged();
+        }
+    }
+}

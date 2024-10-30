@@ -1,0 +1,273 @@
+﻿@using LavenderChessClock1.Chess
+@implements IDisposable
+
+<style>
+    .gameHolder, .playerTimerDiv {
+        display: flex;
+        align-items: center;
+    }
+
+    .gameHolder {
+        flex-direction: row;
+        justify-content: space-evenly;
+        border:none;
+        outline:none;
+    }
+
+    .playerTimerDiv {
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        width: 20%;
+        border-radius: 5px;
+        transition: all 0.2s ease;
+        font-size: 30px;
+        opacity: 0.5;
+    }
+
+    .playerTimerDiv.active {
+        width: 75% !important;
+        font-size: 50px !important;
+        opacity: 1 !important;
+    }
+
+    .player1Div{
+        background-color: white;
+    }
+
+    .player2Div{
+        background-color: black;
+        color: white;
+    }
+
+    .controlsDiv{
+        height: 15vh;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        border: none;
+        outline:none;
+    }
+
+    .extraTimer{
+        display: block;
+        position: absolute;
+        top:10px;
+        left:10px;
+        opacity: 0.5;
+    }
+
+    .gameControl{
+        width: 200px;
+        height: 50px;
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 20px;
+    }
+</style>
+
+<div class="gameHolder" style="width:100%; height:80vh; margin:0; padding:0;" tabindex="0" @onkeydown="HandleKeyDown" @ref="GameHolderRef">
+    <div class="playerTimerDiv player1Div @(ChessGame.IsPlayer1Turn ? "active" : string.Empty)" @onclick="(() => PlayerClick(1))">
+        <h2>@Player1TimeDisplay</h2>
+        @if (ChessGame.Player1Clock._increment is DelayIncrement delayIncrement1 && delayIncrement1._activeState)
+        {
+            <p class="extraTimer">@delayIncrement1.DelayLeft</p>
+        }
+    </div>
+    <div class="playerTimerDiv player2Div @(ChessGame.IsPlayer1Turn ? string.Empty : "active")" @onclick="(() => PlayerClick(2))">
+        <h2>@Player2TimeDisplay</h2>
+        @if (ChessGame.Player2Clock._increment is DelayIncrement delayIncrement2 && delayIncrement2._activeState)
+        {
+            <p class="extraTimer">@delayIncrement2.DelayLeft</p>
+        }
+    </div>
+</div>
+<div class="controlsDiv" tabindex="0" @onkeydown="HandleKeyDown">
+    @if (ChessGame.State == GameState.PreGame)
+    {
+        <button class="gameControl" @onclick=StartGame>Start</button>
+    }
+    else if (ChessGame.State == GameState.Active)
+    {
+        <button class="gameControl" @onclick=PauseGame>Pause</button>
+    }
+    else if (ChessGame.State == GameState.Paused)
+    {
+        <button class="gameControl" @onclick=ResumeGame>Resume</button>
+        <button class="gameControl" @onclick=ResetGame>Reset</button>
+        <button class="gameControl" @onclick=CreateNewGame>New Game</button>
+    }
+    else if (ChessGame.State == GameState.PostGame)
+    {
+        <button class="gameControl" @onclick=ResetGame>Reset</button>
+        <button class="gameControl" @onclick=CreateNewGame>New Game</button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Game? ChessGame { get; set; } = null;
+
+    [Parameter, EditorRequired]
+    public EventCallback OnDiscardGame { get; set; }
+
+    private ElementReference GameHolderRef;
+
+    private decimal Player1TimeLeft { get; set; }
+    private string Player1TimeDisplay { get; set; } = "";
+    private string Player1DelayDisplay { get; set; } = "";
+    private decimal Player2TimeLeft { get; set; }
+    private string Player2TimeDisplay { get; set; } = "";
+    public string Player2DelayDisplay { get; set; } = "";
+
+    protected override void OnInitialized()
+    {
+        if (ChessGame != null)
+        {
+            Player1TimeLeft = ChessGame.Player1Clock._timeLeft;
+            Player2TimeLeft = ChessGame.Player2Clock._timeLeft;
+
+            SetTimerDisplay();
+
+            ChessGame.Player1Clock.OnTimeLeftUpdated += UpdatePlayer1TimeLeft;
+            ChessGame.Player2Clock.OnTimeLeftUpdated += UpdatePlayer2TimeLeft;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (ChessGame != null)
+        {
+            SetTimerDisplay();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    protected void SetTimerDisplay()
+    {
+        SetPlayer1DisplayTime();
+        SetPlayer2DisplayTime();
+    }
+
+    protected void SetPlayer1DisplayTime()
+    {
+        if (Player1TimeLeft >= 60)
+        {
+            Player1TimeDisplay = (Player1TimeLeft / 60).ToString().Split('.')[0] + "m " + Math.Round(Player1TimeLeft % 60, 1).ToString() + "s";
+        }
+        else
+        {
+            Player1TimeDisplay = Math.Round(Player1TimeLeft % 60, 1).ToString() + "s";
+        }
+
+        if (ChessGame.Player1Clock._increment is DelayIncrement delayIncrement1)
+        {
+            Player1DelayDisplay = Math.Round(delayIncrement1.DelayLeft, 1).ToString();
+        }
+    }
+
+    protected void SetPlayer2DisplayTime()
+    {
+        if (Player2TimeLeft >= 60)
+        {
+            Player2TimeDisplay = (Player2TimeLeft / 60).ToString().Split('.')[0] + "m " + Math.Round(Player2TimeLeft % 60, 1).ToString() + "s";
+        }
+        else
+        {
+            Player2TimeDisplay = Math.Round(Player2TimeLeft % 60, 1).ToString() + "s";
+        }
+
+        if (ChessGame.Player2Clock._increment is DelayIncrement delayIncrement2)
+        {
+            Player2DelayDisplay = Math.Round(delayIncrement2.DelayLeft, 1).ToString();
+        }
+    }
+
+    private void UpdatePlayer1TimeLeft(decimal timeLeft)
+    {
+        Player1TimeLeft = timeLeft;
+        SetPlayer1DisplayTime();
+        InvokeStateChanged();
+    }
+
+    private void UpdatePlayer2TimeLeft(decimal timeLeft)
+    {
+        Player2TimeLeft = timeLeft;
+        SetPlayer2DisplayTime();
+        InvokeStateChanged();
+    }
+
+    private void PlayerClick(int playerNumber)
+    {
+        if (ChessGame.State != GameState.Active)
+        {
+            return;
+        }
+
+        if (ChessGame.IsPlayer1Turn && playerNumber == 1)
+        {
+            ChessGame.SwitchTurns();
+        }
+        else if (!ChessGame.IsPlayer1Turn && playerNumber == 2)
+        {
+            ChessGame.SwitchTurns();
+        }
+
+        GameHolderRef.FocusAsync();
+    }
+
+    public async void StartGame()
+    {
+        await GameHolderRef.FocusAsync();
+
+        await ChessGame.StartGame();
+    }
+
+    public async void PauseGame()
+    {
+        ChessGame.PauseGame();
+    }
+
+    public async void ResetGame()
+    {
+        ChessGame.ResetGame();
+    }
+
+    public async void ResumeGame()
+    {
+        await GameHolderRef.FocusAsync();
+
+        ChessGame.ResumeGame();
+    }
+
+    public async void CreateNewGame()
+    {
+        await OnDiscardGame.InvokeAsync();
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe to avoid memory leaks
+        ChessGame.Player1Clock.OnTimeLeftUpdated -= UpdatePlayer1TimeLeft;
+        ChessGame.Player2Clock.OnTimeLeftUpdated -= UpdatePlayer2TimeLeft;
+    }
+
+    protected void InvokeStateChanged()
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private async void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Code == "Space")
+        {
+            ChessGame.SwitchTurns();
+        }
+
+        await GameHolderRef.FocusAsync();
+    }
+}
