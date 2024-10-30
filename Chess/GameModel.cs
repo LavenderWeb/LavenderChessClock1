@@ -9,6 +9,7 @@ namespace LavenderChessClock1.Chess
 
         public IncrementType Player1Increment { get; set; } = IncrementType.NoIncrement;
 
+        [IncrementLengthValidator]
         public int Player1IncrementLength { get; set; } = 0;
 
         public bool SameForBoth { get; set; } = true;
@@ -18,6 +19,7 @@ namespace LavenderChessClock1.Chess
 
         public IncrementType Player2Increment { get; set; } = IncrementType.NoIncrement;
 
+        [IncrementLengthValidator]
         public int Player2IncrementLength { get; set; } = 0;
     }
 }
