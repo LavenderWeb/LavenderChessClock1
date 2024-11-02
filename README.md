@@ -1,7 +1,6 @@
 # LavenderChessClock1
 
-This is a standalone Blazor WebAssembly application that serves as a customizable chess clock. The app is designed to support various types of chess time controls, including both fixed and incremented time settings, with planned features to support delay-based increments.
-
+This is a standalone Blazor WebAssembly application that serves as a customizable chess clock. The app is designed to support various types of time controls.
 ## Features
 - **Play Modes**
     - **No Increment:** Play with a fixed countdown timer for each player, with no time added per turn.
