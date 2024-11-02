@@ -32,7 +32,7 @@ namespace LavenderChessClock1.Chess
                 await Player2Clock.Start();
         }
 
-        public void SwitchTurns()
+        public async Task SwitchTurns()
         {
             if (State != GameState.Active)
             {
@@ -41,59 +41,59 @@ namespace LavenderChessClock1.Chess
 
             if (IsPlayer1Turn)
             {
-                Player1Clock.Stop();
-                Player2Clock.Start();
+                IsPlayer1Turn = false;
+                await Player1Clock.Stop();
+                await Player2Clock.Start();
             }
             else
             {
-                Player2Clock.Stop();
-                Player1Clock.Start();
+                IsPlayer1Turn = true;
+                await Player2Clock.Stop();
+                await Player1Clock.Start();
             }
 
-            IsPlayer1Turn = !IsPlayer1Turn;
-            TurnNumber++;
         }
 
-        public void StopGame()
+        public async Task StopGame()
         {
-            Player1Clock.Stop();
-            Player2Clock.Stop();
+            await Player1Clock.Stop();
+            await Player2Clock.Stop();
             State = GameState.PostGame;
         }
 
-        public void PauseGame()
+        public async Task PauseGame()
         {
-            Player1Clock.Stop();
-            Player2Clock.Stop();
             State = GameState.Paused;
+            await Player1Clock.Stop();
+            await Player2Clock.Stop();
         }
 
-        public void ResetGame()
+        public async Task ResetGame()
         {
-            Player1Clock.Reset();
-            Player2Clock.Reset();
-            IsPlayer1Turn = true;
             State = GameState.PreGame;
+            await Player1Clock.Reset();
+            await Player2Clock.Reset();
+            IsPlayer1Turn = true;
         }
 
-        public void ResumeGame()
+        public async Task ResumeGame()
         {
+            State = GameState.Active;
             if (IsPlayer1Turn)
             {
-                Player1Clock.Resume();
+                await Player1Clock.Resume();
             }
             else
             {
-                Player2Clock.Resume();
+                await Player2Clock.Resume();
             }
-            State = GameState.Active;
         }
 
-        public void CheckIfGameOver(decimal timeLeft)
+        public async void CheckIfGameOver(decimal timeLeft)
         {
             if (timeLeft <= 0)
             {
-                StopGame();
+                await StopGame();
             }
         }
 

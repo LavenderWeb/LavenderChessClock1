@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Timers;
 
 namespace LavenderChessClock1.Chess
 {
@@ -6,20 +7,22 @@ namespace LavenderChessClock1.Chess
     {
         public bool ActiveState { get; set; }
         public int IncrementSeconds { get; set; }
-        void ApplyIncrement(PlayerClock clock);
+        Task ApplyIncrement(PlayerClock clock);
     }
 
     public interface IDelayed
     {
         public decimal DelayLeft { get; set; }
-        void PauseDelay();
+        Task PauseDelay();
+        Task ResumeDelay();
+        Task ResetDelay();
     }
 
     public class NoIncrement : IIncrement
     {
         public bool ActiveState { get; set; } = false;
         public int IncrementSeconds { get; set; } = 0;
-        public void ApplyIncrement(PlayerClock clock) { return; }
+        public async Task ApplyIncrement(PlayerClock clock) { return; }
     }
 
     public class AdditionIncrement : IIncrement
@@ -31,13 +34,12 @@ namespace LavenderChessClock1.Chess
             IncrementSeconds = incrementTime;
         }
 
-        public void ApplyIncrement(PlayerClock clock)
+        public async Task ApplyIncrement(PlayerClock clock)
         {
             ActiveState = true;
-            clock.AddSeconds((decimal)IncrementSeconds);
+            await clock.AddSeconds((decimal)IncrementSeconds);
             ActiveState = false;
         }
-        
     }
 
     public class DelayIncrement : IIncrement, IDelayed
@@ -48,29 +50,50 @@ namespace LavenderChessClock1.Chess
         public System.Timers.Timer DelayTimer { get; set; }
         public decimal DelayLeft { get; set; }
 
-        public delegate void CountdownTick();
-        public event CountdownTick OnCountDownTick;
+        public delegate void DelayTick();
+        public event DelayTick? OnDelayTick;
 
         public DelayIncrement(int incrementTime)
         {
             IncrementSeconds = incrementTime;
             DelayLeft = IncrementSeconds;
 
-            DelayTimer = new System.Timers.Timer();
+            DelayTimer = new System.Timers.Timer(1000);
+            DelayTimer.Elapsed += DecrementDelayLeft;
         }
 
-        public async void ApplyIncrement(PlayerClock clock)
+        public async Task ApplyIncrement(PlayerClock clock)
         {
+            ActiveState = true;
+            DelayLeft = IncrementSeconds;
+            DelayTimer.Start();
+            while (DelayLeft > 0){
+                await Task.Delay(10);
+            }
+            await ResetDelay();
         }
 
-        public void PauseDelay()
+        public async Task PauseDelay()
         {
-            //throw new NotImplementedException();
+            DelayTimer.Enabled = false;
         }
 
-        public void Reset()
-        {
+        public async Task ResetDelay(){
+            DelayTimer.Stop();
+            DelayLeft = 0;
+            ActiveState = false;
+        }
 
+
+        public async Task ResumeDelay()
+        {
+            DelayTimer.Enabled = true;
+        }
+
+        private void DecrementDelayLeft(object? sender, ElapsedEventArgs e)
+        {
+            DelayLeft--;
+            OnDelayTick.Invoke();
         }
     }
 

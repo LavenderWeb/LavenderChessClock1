@@ -2,7 +2,7 @@
 @using LavenderChessClock1.Chess
 @using LavenderChessClock1.Components
 
-<PageTitle>Chess Clock - Start Game</PageTitle>
+<PageTitle>Chess Clock @(GameStateString)</PageTitle>
 
 <style>
     body, html{
@@ -28,10 +28,14 @@
 
     .formLabel{
         display: block;
-        width: 400px;
         text-align: left;
         font-size: 20px;
         word-wrap:normal;
+    }
+
+    .formLabelHolder{
+        width: 400px; 
+        max-width: 100%;
     }
 
     #CreateGameForm{
@@ -77,6 +81,7 @@ else
         <InputSelect @bind-Value="GameModel.Player1Increment" class="gameInput">
             <option value="@IncrementType.NoIncrement">No Increment</option>
             <option value="@IncrementType.AdditionIncrement">Addition</option>
+            <option value="@IncrementType.DelayIncrement">Delay</option>
         </InputSelect>
         <ValidationMessage For="@(() => GameModel.Player1Increment)" class="gameValidationMessage" />
 
@@ -92,7 +97,7 @@ else
         <ValidationMessage For="@(() => GameModel.Player1IncrementLength)" class="gameValidationMessage" />
 
         <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin: 20px 0; padding: 0;">
-            <p class="formLabel" style="margin-right: 20px;">Same for both?</p>
+            <p class="formLabel">Same for both?</p>
             <InputCheckbox @bind-Value="GameModel.SameForBoth" class="tfInput"></InputCheckbox>
         </div>
 
@@ -106,6 +111,7 @@ else
             <InputSelect @bind-Value="GameModel.Player2Increment" class="gameInput">
                 <option value="@IncrementType.NoIncrement">No Increment</option>
                 <option value="@IncrementType.AdditionIncrement">Addition</option>
+                <option value="@IncrementType.DelayIncrement">Delay</option>
             </InputSelect>
             <ValidationMessage For="@(() => GameModel.Player2Increment)" class="gameValidationMessage" />
 
@@ -134,6 +140,8 @@ else
     public GameModel GameModel { get; set; } = default!;
 
     public EditContext GameContext { get; set; } = default!;
+
+    private string GameStateString {get; set;} = string.Empty;
 
     protected override void OnInitialized()
     {

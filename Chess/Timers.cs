@@ -5,7 +5,6 @@ namespace LavenderChessClock1.Chess
 {
     public class PlayerClock
     {
-        private bool _firstRun = true;
         public decimal InitialTime { get; private set; }
         public decimal FullTime { get; private set; }
         public IIncrement Increment { get; private set; }
@@ -27,19 +26,17 @@ namespace LavenderChessClock1.Chess
 
         public async Task Start()
         {
-            if (!_firstRun)
-            {
-                Increment.ApplyIncrement(this);
+            await UpdateTimeLeft();
+            await Increment.ApplyIncrement(this);
 
-                while (Increment.ActiveState)
-                {
-                }
+            while (Increment.ActiveState)
+            {
+                await Task.Delay(100);
             }
 
             Paused = false;
             Stopwatch.Start();
             await TimeLeftLoop();
-            _firstRun = false;
         }
 
         public async Task TimeLeftLoop()
@@ -47,59 +44,63 @@ namespace LavenderChessClock1.Chess
             while (!Paused)
             {
                 await Task.Delay(10);
-                UpdateTimeLeft();
+                await UpdateTimeLeft();
             }
         }
 
-        public void Stop()
+        public async Task Stop()
         {
             Stopwatch.Stop();
             Paused = true;
-            if (Increment is DelayIncrement delayIncrement)
+            if (Increment is IDelayed delayIncrement)
             {
-                delayIncrement.Reset();
+                await delayIncrement.PauseDelay();
             }
         }
 
-        public void Reset()
+        public async Task Reset()
         {
             Stopwatch?.Reset();
             TimeLeft = FullTime = InitialTime;
-            _firstRun = true;
-            InvokeTimeLeftUpdated(TimeLeft);
+            await InvokeTimeLeftUpdated(TimeLeft);
         }
 
-        public async void Resume()
+        public async Task Resume()
         {
-            if (Increment.ActiveState)
+            if (Increment.ActiveState && Increment is IDelayed delayed)
             {
-                Increment.ApplyIncrement(this);
+                await delayed.ResumeDelay();
+
+                while (Increment.ActiveState)
+                {
+                    await UpdateTimeLeft();
+                    await Task.Delay(100);
+                }
             }
 
             Paused = false;
             Stopwatch.Start();
             await TimeLeftLoop();
-            _firstRun = false;
         }
 
-        public void AddSeconds(decimal seconds)
+        public async Task AddSeconds(decimal seconds)
         {
             FullTime += seconds;
         }
 
-        public void UpdateTimeLeft()
+        public async Task UpdateTimeLeft()
         {
             TimeLeft = FullTime - (decimal)Stopwatch.Elapsed.TotalSeconds;
 
+            await InvokeTimeLeftUpdated(TimeLeft);
+
             if (TimeLeft <= 0)
             {
-                Stop();
+                await Stop();
             }
-
-            InvokeTimeLeftUpdated(TimeLeft);
         }
 
-        private void InvokeTimeLeftUpdated(decimal timeLeft)
+        private async Task InvokeTimeLeftUpdated(decimal timeLeft)
         {
             OnTimeLeftUpdated?.Invoke(timeLeft);
         }

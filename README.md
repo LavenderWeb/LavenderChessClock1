@@ -6,7 +6,7 @@ This is a standalone Blazor WebAssembly application that serves as a customizabl
 - **Play Modes**
     - **No Increment:** Play with a fixed countdown timer for each player, with no time added per turn.
     - **Increment Mode:** Allows time to be added at the beginning of each turn, offering a more flexible time control style.
-    - **Delay Increment (Coming Soon):** Adds a delay before the main countdown starts, providing more options for time control.
+    - **Delay Increment:** Adds a delay before the main countdown starts, providing more options for time control.
 - **Game Controls**
     - **Pause and Resume:** The game can be paused at any moment and continued later, preserving current times and increment states.
     - **Game Reset or New Game:** When a game ends, you have the option to reset the game using the same settings or create a new game with fresh time control settings.
@@ -29,6 +29,7 @@ This is a standalone Blazor WebAssembly application that serves as a customizabl
 - **.NET Version:** .NET 8.0.
 
 ## Planned Improvements
-- **Increments:** Add support for delay increments, allow user to determine if increment should be added at the beginning of the turn or the end.
+- **Increments:** Allow user to determine if increment should be added at the beginning of the turn or the end.
+- **Saved Games:** Save history of time controls and allow user to select from a previously configured game.
 - **Themes:** Allow the user to define a color scheme, save and load custom themes.
 - **Key Bindings:** Add support for custom key bindings, allowing the user to determine which keys perform which actions.
