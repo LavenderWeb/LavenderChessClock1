@@ -5,6 +5,7 @@ namespace LavenderChessClock1.Chess
 {
     public interface IIncrement
     {
+        public string Name { get; set; }
         public bool ActiveState { get; set; }
         public int IncrementSeconds { get; set; }
         Task ApplyIncrement(PlayerClock clock);
@@ -20,6 +21,7 @@ namespace LavenderChessClock1.Chess
 
     public class NoIncrement : IIncrement
     {
+        public string Name { get; set; } = string.Empty;
         public bool ActiveState { get; set; } = false;
         public int IncrementSeconds { get; set; } = 0;
         public async Task ApplyIncrement(PlayerClock clock) { return; }
@@ -27,6 +29,7 @@ namespace LavenderChessClock1.Chess
 
     public class AdditionIncrement : IIncrement
     {
+        public string Name { get; set; } = "Addition";
         public bool ActiveState { get; set; } = false;
         public int IncrementSeconds { get; set; }
         public AdditionIncrement(int incrementTime)
@@ -44,9 +47,9 @@ namespace LavenderChessClock1.Chess
 
     public class DelayIncrement : IIncrement, IDelayed
     {
+        public string Name { get; set; } = "Delay";
         public bool ActiveState { get; set; } = false;
         public int IncrementSeconds { get; set; }
-
         public System.Timers.Timer DelayTimer { get; set; }
         public decimal DelayLeft { get; set; }
 
@@ -72,24 +75,19 @@ namespace LavenderChessClock1.Chess
             }
             await ResetDelay();
         }
-
         public async Task PauseDelay()
         {
             DelayTimer.Enabled = false;
         }
-
         public async Task ResetDelay(){
             DelayTimer.Stop();
             DelayLeft = 0;
             ActiveState = false;
         }
-
-
         public async Task ResumeDelay()
         {
             DelayTimer.Enabled = true;
         }
-
         private void DecrementDelayLeft(object? sender, ElapsedEventArgs e)
         {
             DelayLeft--;

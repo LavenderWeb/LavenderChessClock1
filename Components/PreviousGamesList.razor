@@ -1,0 +1,115 @@
+﻿@using LavenderChessClock1.Chess
+@using LavenderChessClock1.Services
+@inject IGamesListService _gamesListService
+
+
+<style>
+    .divNoGames, .gameDiv{
+        width: 600px;
+        max-width: 100%;
+        height: 50px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center
+    }
+
+    .divNoGames{
+        text-align: center;
+        display: block;
+    }
+
+    .gameDiv{
+        border-radius: 5px;
+        padding: 0 10px;
+        margin: 5px 0;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all 0.2s ease-in-out;
+        font-size: 18px;
+    }
+
+    .gameDiv:hover{
+        opacity: 1 !important;
+    }
+
+    .whiteLine {
+        background-color: white;
+        color: black;
+    }
+
+    .blackLine {
+        background-color: black;
+        color: white;
+    }
+</style>
+
+<h1 style="width: 100%; text-align: center; margin-bottom: 5px; font-size: 40px; font-weight: 600; border:none; outline:none;">History</h1>
+<h6 style="width: 100%; text-align: center; margin-top: 0; margin-bottom: 10px;">Click to reload a previous game</h6>
+
+@if (_loading){
+    <div class="divNoGames">loading...</div>
+}
+else if (GamesList == null || GamesList.Count == 0)
+{
+    <div class="divNoGames">no recent games</div>
+}
+else
+{
+    <div class="gameDiv" style="opacity:1 !important; cursor: unset; margin:0;">
+        <b>Player 1</b>
+        <b>Player 2</b>
+    </div>
+    foreach (var gameModel in GamesList)
+    {
+        <div class="gameDiv @(GamesList.IndexOf(gameModel) % 2 == 0 ? "whiteLine" : "blackLine")" @onclick="(() => LoadGame(gameModel))">
+            <p>@(gameModel.Player1Seconds + "s + " + gameModel.Player1IncrementLength + "s " + gameModel.Player1Increment.ToString())</p>
+            <p>vs</p>
+            <p>@(gameModel.Player2Seconds + "s + " + gameModel.Player2IncrementLength + "s " + gameModel.Player2Increment.ToString())</p>
+        </div>
+    }
+}
+
+@code{
+    public EventCallback<GameModel> OnGameLoaded;
+    private List<GameModel> GamesList { get; set; } = default!;
+    private bool _loading = true;
+
+    protected override Task OnInitializedAsync()
+    {
+        // _gamesListService.OnListLoaded += InvokeStateChanged;
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _gamesListService.PopulateGamesList();
+            GamesList = _gamesListService.GameQueue.ToList(); 
+
+            if (GamesList.Count > 0)
+            {
+                GamesList.Reverse();
+            }
+
+            _loading = false;
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void InvokeStateChanged()
+    {
+        StateHasChanged();
+    }
+
+    private async Task LoadGame(GameModel gameToLoad)
+    {
+        if (gameToLoad != null)
+        {
+            await OnGameLoaded.InvokeAsync(gameToLoad);
+        }
+    }
+}

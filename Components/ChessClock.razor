@@ -289,9 +289,28 @@
 
     private async void HandleKeyDown(KeyboardEventArgs e)
     {
-        if (e.Code == "Space")
+        if (e == null || string.IsNullOrEmpty(e.Code) || ChessGame == null)
         {
-            ChessGame.SwitchTurns();
+            return;
+        }
+
+        switch (e.Code)
+        {
+            case "Space":
+                await ChessGame.SwitchTurns();
+                break;
+            case "KeyP":
+                if (ChessGame.State == GameState.Paused)
+                {
+                    await ChessGame.ResumeGame();
+                }
+                else
+                {
+                    await ChessGame.PauseGame();
+                }
+                break;
+            default:
+                break;
         }
 
         await GameHolderRef.FocusAsync();

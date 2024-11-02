@@ -1,12 +1,25 @@
 ﻿@page "/"
 @using LavenderChessClock1.Chess
 @using LavenderChessClock1.Components
+@using LavenderChessClock1.Services
+@inject IGamesListService _gamesListService
 
 <PageTitle>Chess Clock @(GameStateString)</PageTitle>
 
 <style>
     body, html{
         background-color: grey;
+    }
+
+    .homeHolder{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
     }
 
     .gameInput{
@@ -29,17 +42,21 @@
     .formLabel{
         display: block;
         text-align: left;
-        font-size: 20px;
+        font-size: 18px;
         word-wrap:normal;
     }
 
     .formLabelHolder{
+        height: 50px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
         width: 400px; 
         max-width: 100%;
     }
 
-    #CreateGameForm{
-        width: 100%;
+    #CreateGameForm, .divGamesHolder {
+        width: 50%;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -68,70 +85,91 @@
 }
 else
 {
-    <EditForm id="CreateGameForm" EditContext="GameContext" OnValidSubmit="CreateGame" FormName="@("GameForm")">
-        <h1 style="font-size: 40px; font-weight: 600; border:none; outline:none;">New Game</h1>
+    <div class="homeHolder">
 
-        <DataAnnotationsValidator />
+        <EditForm id="CreateGameForm" EditContext="GameContext" OnValidSubmit="CreateGame" FormName="@("GameForm")">
+            <h1 style="font-size: 40px; font-weight: 600; border:none; outline:none; margin-bottom: 5px;">New Game</h1>
+            <h6 style="width: 100%; text-align: center; margin-top: 0; margin-bottom: 10px;">Create a game with new time controls</h6>
 
-        <p class="formLabel">Player 1 Starting Time (in seconds)</p>
-        <InputNumber @bind-Value="GameModel.Player1Seconds" class="gameInput" placeholder="Player 1 Timer" ParsingErrorMessage="Seconds must be a positive integer."></InputNumber>
-        <ValidationMessage For="@(() => GameModel.Player1Seconds)" class="gameValidationMessage" />
+            <DataAnnotationsValidator />
+            <div class="formLabelHolder">
+                <b class="formLabel">Player 1 Starting Time (in seconds)</b>
+            </div>
+            <InputNumber @bind-Value="GameModel.Player1Seconds" class="gameInput" placeholder="Player 1 Timer" ParsingErrorMessage="Seconds must be a positive integer."></InputNumber>
+            <ValidationMessage For="@(() => GameModel.Player1Seconds)" class="gameValidationMessage" />
 
-        <p class="formLabel">Player 1 Increment Type</p>
-        <InputSelect @bind-Value="GameModel.Player1Increment" class="gameInput">
-            <option value="@IncrementType.NoIncrement">No Increment</option>
-            <option value="@IncrementType.AdditionIncrement">Addition</option>
-            <option value="@IncrementType.DelayIncrement">Delay</option>
-        </InputSelect>
-        <ValidationMessage For="@(() => GameModel.Player1Increment)" class="gameValidationMessage" />
 
-        <p class="formLabel">Player 1 Increment Length (in seconds)</p>
-        @if (GameModel.Player1Increment == IncrementType.NoIncrement)
-        {
-            <InputNumber @bind-Value="GameModel.Player1IncrementLength" class="gameInput" disabled ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
-        }
-        else
-        {
-            <InputNumber @bind-Value="GameModel.Player1IncrementLength" class="gameInput" ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
-        }
-        <ValidationMessage For="@(() => GameModel.Player1IncrementLength)" class="gameValidationMessage" />
-
-        <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin: 20px 0; padding: 0;">
-            <p class="formLabel">Same for both?</p>
-            <InputCheckbox @bind-Value="GameModel.SameForBoth" class="tfInput"></InputCheckbox>
-        </div>
-
-        @if (!GameModel.SameForBoth)
-        {
-            <p class="formLabel">Player 2 Starting Time (in seconds)</p>
-            <InputNumber @bind-Value="GameModel.Player2Seconds" class="gameInput" ParsingErrorMessage="Seconds must be a positive integer."></InputNumber>
-            <ValidationMessage For="@(() => GameModel.Player2Seconds)" class="gameValidationMessage" />
-
-            <p class="formLabel">Player 2 Increment Type</p>
-            <InputSelect @bind-Value="GameModel.Player2Increment" class="gameInput">
+            <div class="formLabelHolder">
+                <b class="formLabel">Player 1 Increment Type</b>
+            </div>
+            <InputSelect @bind-Value="GameModel.Player1Increment" class="gameInput">
                 <option value="@IncrementType.NoIncrement">No Increment</option>
                 <option value="@IncrementType.AdditionIncrement">Addition</option>
                 <option value="@IncrementType.DelayIncrement">Delay</option>
             </InputSelect>
-            <ValidationMessage For="@(() => GameModel.Player2Increment)" class="gameValidationMessage" />
+            <ValidationMessage For="@(() => GameModel.Player1Increment)" class="gameValidationMessage" />
 
-            <p class="formLabel">Player 2 Increment Length (in seconds)</p>
-            @if (GameModel.Player2Increment == IncrementType.NoIncrement)
+            <div class="formLabelHolder">
+                <b class="formLabel">Player 1 Increment Length (in seconds)</b>
+            </div>
+            @if (GameModel.Player1Increment == IncrementType.NoIncrement)
             {
-                <InputNumber @bind-Value="GameModel.Player2IncrementLength" class="gameInput" disabled ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
+                <InputNumber @bind-Value="GameModel.Player1IncrementLength" class="gameInput" disabled ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
             }
             else
             {
-                <InputNumber @bind-Value="GameModel.Player2IncrementLength" class="gameInput" ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
+                <InputNumber @bind-Value="GameModel.Player1IncrementLength" class="gameInput" ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
             }
-            <ValidationMessage For="@(() => GameModel.Player2IncrementLength)" class="gameValidationMessage" />
-        }
+            <ValidationMessage For="@(() => GameModel.Player1IncrementLength)" class="gameValidationMessage" />
 
-        <div class="submitFormDiv">
-            <button id="BtnSubmit" type="submit">Create Game</button>
+            <div class="formLabelHolder" style="justify-content: space-between;">
+                <b class="formLabel">Same for both?</b>
+                <InputCheckbox @bind-Value="GameModel.SameForBoth" class="tfInput"></InputCheckbox>
+            </div>
+
+            @if (!GameModel.SameForBoth)
+            {
+                <div class="formLabelHolder">
+                    <b class="formLabel">Player 2 Starting Time (in seconds)</b>
+                </div>
+                <InputNumber @bind-Value="GameModel.Player2Seconds" class="gameInput" ParsingErrorMessage="Seconds must be a positive integer."></InputNumber>
+                <ValidationMessage For="@(() => GameModel.Player2Seconds)" class="gameValidationMessage" />
+
+                <div class="formLabelHolder">
+                    <b class="formLabel">Player 2 Increment Type</b>
+                </div>
+                <InputSelect @bind-Value="GameModel.Player2Increment" class="gameInput">
+                    <option value="@IncrementType.NoIncrement">No Increment</option>
+                    <option value="@IncrementType.AdditionIncrement">Addition</option>
+                    <option value="@IncrementType.DelayIncrement">Delay</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => GameModel.Player2Increment)" class="gameValidationMessage" />
+
+                <div class="formLabelHolder">
+                    <b class="formLabel">Player 2 Increment Length (in seconds)</b>
+                </div>
+                @if (GameModel.Player2Increment == IncrementType.NoIncrement)
+                {
+                    <InputNumber @bind-Value="GameModel.Player2IncrementLength" class="gameInput" disabled ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
+                }
+                else
+                {
+                    <InputNumber @bind-Value="GameModel.Player2IncrementLength" class="gameInput" ParsingErrorMessage="Increment length must be a positive integer."></InputNumber>
+                }
+                <ValidationMessage For="@(() => GameModel.Player2IncrementLength)" class="gameValidationMessage" />
+            }
+
+            <div class="submitFormDiv">
+                <button id="BtnSubmit" type="submit">Create Game</button>
+            </div>
+
+        </EditForm>
+
+        <div class="divGamesHolder">
+            <PreviousGamesList />
         </div>
 
-    </EditForm>
+    </div>
 }
 
 @code {
@@ -196,6 +234,7 @@ else
                 : IncrementFactory.CreateIncrement(GameModel.Player2Increment, GameModel.Player2IncrementLength);
 
             NewGame = new Game(player1Seconds, player2Seconds, increment1, increment2);
+            _gamesListService.AddGameToList(GameModel);
 
             InvokeStateChanged();
         }

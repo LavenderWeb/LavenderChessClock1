@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using LavenderChessClock1.Services;
 
 namespace LavenderChessClock1
 {
@@ -12,6 +13,7 @@ namespace LavenderChessClock1
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddSingleton<IGamesListService, LocalStorageGamesListService>();
 
             await builder.Build().RunAsync();
         }

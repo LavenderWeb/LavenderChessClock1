@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Timers;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace LavenderChessClock1.Chess
 {
@@ -56,13 +57,23 @@ namespace LavenderChessClock1.Chess
 
         public async Task StopGame()
         {
+            if (State != GameState.Active)
+            {
+                return;
+            }
+
+            State = GameState.PostGame;
             await Player1Clock.Stop();
             await Player2Clock.Stop();
-            State = GameState.PostGame;
         }
 
         public async Task PauseGame()
         {
+            if (State != GameState.Active)
+            {
+                return;
+            }
+
             State = GameState.Paused;
             await Player1Clock.Stop();
             await Player2Clock.Stop();
@@ -70,6 +81,11 @@ namespace LavenderChessClock1.Chess
 
         public async Task ResetGame()
         {
+            if (State != GameState.Paused && State != GameState.PostGame)
+            {
+                return;
+            }
+
             State = GameState.PreGame;
             await Player1Clock.Reset();
             await Player2Clock.Reset();
@@ -78,6 +94,11 @@ namespace LavenderChessClock1.Chess
 
         public async Task ResumeGame()
         {
+            if (State != GameState.Paused)
+            {
+                return;
+            }
+
             State = GameState.Active;
             if (IsPlayer1Turn)
             {
