@@ -23,11 +23,16 @@
     }
 
     .gameInput{
-        font-size: 20px;
+        font-size: 25px;
         height: 30px;
         width: 400px;
         margin:0;
         padding:0;
+        border-radius: 5px;
+        height: 40px;
+        border:none;
+        outline:none;
+        background-color: RGBA(255,255,255,0.5);
     }
 
         .gameInput[disabled]{
@@ -42,7 +47,7 @@
     .formLabel{
         display: block;
         text-align: left;
-        font-size: 18px;
+        font-size: 20px;
         word-wrap:normal;
     }
 
@@ -166,7 +171,7 @@ else
         </EditForm>
 
         <div class="divGamesHolder">
-            <PreviousGamesList />
+            <PreviousGamesList OnGameLoaded="LoadGameModel" />
         </div>
 
     </div>
@@ -188,9 +193,10 @@ else
         base.OnInitialized();
     }
 
-    protected void ResetModelAndContext()
+    protected async void ResetModelAndContext()
     {
-        GameModel = new GameModel();
+        var mostRecentGame = await _gamesListService.GetMostRecentGame();
+        GameModel = mostRecentGame ?? new GameModel();
         GameContext = new EditContext(GameModel);
     }
 
@@ -238,5 +244,11 @@ else
 
             InvokeStateChanged();
         }
+    }
+
+    public void LoadGameModel(GameModel model)
+    {
+        GameModel = model;
+        CreateGame();
     }
 }

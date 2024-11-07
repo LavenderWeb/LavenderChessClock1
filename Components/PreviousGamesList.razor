@@ -57,21 +57,22 @@ else if (GamesList == null || GamesList.Count == 0)
 else
 {
     <div class="gameDiv" style="opacity:1 !important; cursor: unset; margin:0;">
-        <b>Player 1</b>
+        <b style="font-size: 20px;">Player 1</b>
         <b>Player 2</b>
     </div>
     foreach (var gameModel in GamesList)
     {
         <div class="gameDiv @(GamesList.IndexOf(gameModel) % 2 == 0 ? "whiteLine" : "blackLine")" @onclick="(() => LoadGame(gameModel))">
-            <p>@(gameModel.Player1Seconds + "s + " + gameModel.Player1IncrementLength + "s " + gameModel.Player1Increment.ToString())</p>
+            <p>@(gameModel.Player1Seconds + "s + " + gameModel.Player1IncrementLength + "s " + gameModel.Player1Increment.ToString().Replace("NoIncrement", string.Empty).Replace("Increment", string.Empty))</p>
             <p>vs</p>
-            <p>@(gameModel.Player2Seconds + "s + " + gameModel.Player2IncrementLength + "s " + gameModel.Player2Increment.ToString())</p>
+            <p>@(gameModel.Player2Seconds + "s + " + gameModel.Player2IncrementLength + "s " + gameModel.Player2Increment.ToString().Replace("NoIncrement", string.Empty).Replace("Increment", string.Empty))</p>
         </div>
     }
 }
 
 @code{
-    public EventCallback<GameModel> OnGameLoaded;
+    [Parameter]
+    public EventCallback<GameModel> OnGameLoaded { get; set; }
     private List<GameModel> GamesList { get; set; } = default!;
     private bool _loading = true;
 

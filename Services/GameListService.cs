@@ -23,7 +23,7 @@ namespace LavenderChessClock1.Services
     {
         private readonly IJSRuntime _jsRuntime;
         private const string StorageKey = "ChessClockGameQueue";
-
+        private int MaxNumGames = 10;
         public delegate void ListLoaded();
         public event IGamesListService.ListLoaded? OnListLoaded;
 
@@ -33,8 +33,6 @@ namespace LavenderChessClock1.Services
         {
             _jsRuntime = jsRuntime;
             GameQueue = new Queue<GameModel>(10);
-
-            //PopulateGamesList();
         }
 
         public async Task PopulateGamesList()
@@ -62,6 +60,12 @@ namespace LavenderChessClock1.Services
         public async Task AddGameToList(GameModel game)
         {
             GameQueue.Enqueue(game);
+
+            if (GameQueue.Count > MaxNumGames)
+            {
+                GameQueue.Dequeue();
+            }
+
             await SaveListToStorage();
         }
 
@@ -76,7 +80,16 @@ namespace LavenderChessClock1.Services
 
         public async Task<GameModel?> GetMostRecentGame()
         {
-            return GameQueue.Count > 0 ? GameQueue.Peek() : null;
+            if (GameQueue.Count == 0)
+            {
+                return null;
+            }
+            else if (GameQueue.Count == 1)
+            {
+                return GameQueue.Peek();
+            }
+
+            return GameQueue.Last();
         }
 
         public async Task ClearGamesList()
