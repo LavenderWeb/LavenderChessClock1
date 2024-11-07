@@ -8,7 +8,15 @@
 
 <style>
     body, html{
-        background-color: grey;
+        background-color: #9999CC;
+    }
+
+    input[type="checkbox"]{
+        accent-color: #272447;
+    }
+
+    .colorDarkBlue{
+        color: #272447;
     }
 
     .homeHolder{
@@ -32,7 +40,7 @@
         height: 40px;
         border:none;
         outline:none;
-        background-color: RGBA(255,255,255,0.5);
+        color: #272447;
     }
 
         .gameInput[disabled]{
@@ -49,6 +57,7 @@
         text-align: left;
         font-size: 20px;
         word-wrap:normal;
+        color: #272447;
     }
 
     .formLabelHolder{
@@ -75,7 +84,7 @@
     #BtnSubmit{
         width: 200px;
         height: 50px;
-        background-color: black;
+        background-color: #272447;
         border:none;
         outline:none;
         color: white;
@@ -93,8 +102,8 @@ else
     <div class="homeHolder">
 
         <EditForm id="CreateGameForm" EditContext="GameContext" OnValidSubmit="CreateGame" FormName="@("GameForm")">
-            <h1 style="font-size: 40px; font-weight: 600; border:none; outline:none; margin-bottom: 5px;">New Game</h1>
-            <h6 style="width: 100%; text-align: center; margin-top: 0; margin-bottom: 10px;">Create a game with new time controls</h6>
+            <h1 style="font-size: 40px; font-weight: 600; border:none; outline:none; margin-bottom: 5px; font-size: 40px;" class="colorDarkBlue">New Game</h1>
+            <h6 style="width: 100%; text-align: center; margin-top: 0; margin-bottom: 10px; font-size: 15px;" class="colorDarkBlue">Create a game with new time controls</h6>
 
             <DataAnnotationsValidator />
             <div class="formLabelHolder">

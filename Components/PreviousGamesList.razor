@@ -35,17 +35,17 @@
 
     .whiteLine {
         background-color: white;
-        color: black;
+        color: #272447;
     }
 
     .blackLine {
-        background-color: black;
+        background-color: #272447;
         color: white;
     }
 </style>
 
-<h1 style="width: 100%; text-align: center; margin-bottom: 5px; font-size: 40px; font-weight: 600; border:none; outline:none;">History</h1>
-<h6 style="width: 100%; text-align: center; margin-top: 0; margin-bottom: 10px;">Click to reload a previous game</h6>
+<h1 style="width: 100%; text-align: center; margin-bottom: 5px; font-size: 40px; font-weight: 600; border:none; outline:none; font-size: 40px;" class="colorDarkBlue">History</h1>
+<h6 style="width: 100%; text-align: center; margin-top: 0; margin-bottom: 10px; font-size: 15px;" class="colorDarkBlue">Click to reload a previous game</h6>
 
 @if (_loading){
     <div class="divNoGames">loading...</div>
@@ -57,15 +57,29 @@ else if (GamesList == null || GamesList.Count == 0)
 else
 {
     <div class="gameDiv" style="opacity:1 !important; cursor: unset; margin:0;">
-        <b style="font-size: 20px;">Player 1</b>
-        <b>Player 2</b>
+        <b style="font-size: 20px;" class="colorDarkBlue">Player 1</b>
+        <b style="font-size: 20px;" class="colorDarkBlue">Player 2</b>
     </div>
     foreach (var gameModel in GamesList)
     {
         <div class="gameDiv @(GamesList.IndexOf(gameModel) % 2 == 0 ? "whiteLine" : "blackLine")" @onclick="(() => LoadGame(gameModel))">
-            <p>@(gameModel.Player1Seconds + "s + " + gameModel.Player1IncrementLength + "s " + gameModel.Player1Increment.ToString().Replace("NoIncrement", string.Empty).Replace("Increment", string.Empty))</p>
-            <p>vs</p>
-            <p>@(gameModel.Player2Seconds + "s + " + gameModel.Player2IncrementLength + "s " + gameModel.Player2Increment.ToString().Replace("NoIncrement", string.Empty).Replace("Increment", string.Empty))</p>
+            @if (gameModel.Player1Increment == IncrementType.NoIncrement)
+            {
+                <p>@(gameModel.Player1Seconds + "s")</p>
+            }
+            else
+            {
+                <p>@(gameModel.Player1Seconds + "s + " + gameModel.Player1IncrementLength + "s " + gameModel.Player1Increment.ToString().Replace("Increment", string.Empty))</p>
+            }
+            @* <p>vs</p> *@
+            @if (gameModel.Player2Increment == IncrementType.NoIncrement)
+            {
+                <p>@(gameModel.Player2Seconds + "s")</p>
+            }
+            else
+            {
+                <p>@(gameModel.Player2Seconds + "s + " + gameModel.Player2IncrementLength + "s " + gameModel.Player2Increment.ToString().Replace("Increment", string.Empty))</p>
+            }
         </div>
     }
 }

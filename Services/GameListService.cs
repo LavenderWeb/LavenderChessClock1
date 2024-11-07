@@ -7,7 +7,7 @@ namespace LavenderChessClock1.Services
 {
     public interface IGamesListService
     {
-        public Queue<GameModel> GameQueue { get; set; }
+        public Queue<GameModel> GameQueue { get; }
         public Task PopulateGamesList();
         public Task AddGameToList(GameModel game);
         public Task RemoveGameFromList(GameModel game);
@@ -27,7 +27,7 @@ namespace LavenderChessClock1.Services
         public delegate void ListLoaded();
         public event IGamesListService.ListLoaded? OnListLoaded;
 
-        public Queue<GameModel> GameQueue { get; set; }
+        public Queue<GameModel> GameQueue { get; private set; }
 
         public LocalStorageGamesListService(IJSRuntime jsRuntime)
         {
